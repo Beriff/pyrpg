@@ -77,11 +77,11 @@ player.eq = empty
 
 class Recipe:
 
-    required = []
-
-    def __init__(self, name, result, *required):
+    def __init__(self, name, result, reqID, *required):
+        self.required = []
         self.name = name
         self.result = result
+        self.requiredID = reqID
         for i in required:
             self.required.append(i)
 
@@ -101,7 +101,7 @@ class Tool:
         self.durability = durability
 
 wooden_pickaxe = Tool("wooden_pickaxe", 1, 2, 20)
-woodpickRecipe = Recipe("wooden_pickaxe", wooden_pickaxe, wood, rock)
+woodpickRecipe = Recipe("wooden_pickaxe", wooden_pickaxe, 0, wood, rock)
 creationTabRecipes.append(woodpickRecipe)
 
 #commands at "inventory" tab
@@ -141,6 +141,16 @@ def inventoryTab():
 
 #showing creation tab to a player
 def creationTab():
+    global playerPosition
+    global currentGrid
+    nearbyStations = [0]
+    try:
+        nearbyStations.append(currentGrid.grid[playerPosition + 1].objectID)
+        nearbyStations.append(currentGrid.grid[playerPosition - 1].objectID)
+        nearbyStations.append(currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].objectID)
+        nearbyStations.append(currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].objectID)
+    except AttributeError:
+        pass
     system('cls')
 
 
@@ -152,7 +162,7 @@ def creationTab():
     #i hate double loops, they take much more time to understand them
     for i in range(0, len(creationTabRecipes)):
         for j in creationTabRecipes[i].required:
-            if j in player.inv:
+            if j in player.inv and creationTabRecipes[i].requiredID in nearbyStations:
                 isPossibleToCraft.append(True)
             else:
                 isPossibleToCraft.append(False)
