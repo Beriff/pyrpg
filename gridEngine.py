@@ -34,14 +34,15 @@ class Object:
 
     #toolID = 0
 
-    def __init__(self, symbol, color, name, bottomTile, level=0, collision=False):
+    def __init__(self, symbol, color, name, bottomTile, level=0, collision=False, isPlaceable=True):
         self.symbol = symbol
         self.color = color
         self.name = name
         self.level = level
         self.collision = collision
         self.bottomTile = bottomTile
-        self.objectId = 0
+        self.isPlaceable = isPlaceable
+        self.objectID = 0
         self.toolID = 0
 
     def setProperties(self, bottomObject, isFluid=False):
