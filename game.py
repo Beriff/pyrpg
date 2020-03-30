@@ -65,6 +65,8 @@ changes = []
 #For headstart and pickaxe creating
 player.inv.append(rock)
 player.inv.append(rock)
+player.inv.append(rock)
+player.inv.append(rock)
 player.inv.append(wood)
 
 #generally used in "log" and "equipped" labels under game's grid
@@ -112,6 +114,7 @@ def userInputDefine(plrInput):
             if player.inv[i].name == splitted[1]:
                 player.eq = player.inv[i]
                 print(player.inv[i].name + " equipped")
+                player.inv.pop(i)
                 break
 
 #showing inventory tab to a player (line 113)
@@ -246,7 +249,7 @@ def key_listen():
     elif kb.is_pressed('q'):
         creationTab()
 
-    #BLOCK BREAKING USING ARROWS
+    #BLOCK BREAKING AND PLACING USING ARROWS
     #almost everything here is ctrl+c ctrl+v
     try:
         global log
@@ -262,9 +265,18 @@ def key_listen():
 
                 player.eq.durability -= 1
                 if player.eq.durability <= 0:
-                    player.inv.remove(player.eq)
                     player.eq = empty
                     log = "PICKAXE BROKE"
+        elif kb.is_pressed("right arrow") and not (currentGrid.grid[ playerPosition + 1 ].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + 1] != player.eq:
+            autoreplace = player.eq
+            currentGrid.grid[playerPosition + 1] = player.eq
+            player.eq = empty
+            currentGrid.draw()
+            if autoreplace in player.inv:
+                index = player.inv.index(autoreplace)
+                player.eq = player.inv[index]
+                player.inv.pop(index)
+
 
         elif kb.is_pressed("left arrow") and ( playerPosition % 100 != 0 ) and (currentGrid.grid[ playerPosition - 1 ].collision) and player.eq.toolID == 1:
             if currentGrid.grid[ playerPosition - 1 ].level < player.eq.level:
@@ -278,9 +290,17 @@ def key_listen():
 
                 player.eq.durability -= 1
                 if player.eq.durability <= 0:
-                    player.inv.remove(player.eq)
                     player.eq = empty
                     log = "PICKAXE BROKE"
+        elif kb.is_pressed("left arrow") and ( playerPosition % 100 != 0 ) and not (currentGrid.grid[ playerPosition - 1 ].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + 1] != player.eq:
+            autoreplace = player.eq
+            currentGrid.grid[playerPosition - 1] = player.eq
+            player.eq = empty
+            currentGrid.draw()
+            if autoreplace in player.inv:
+                index = player.inv.index(autoreplace)
+                player.eq = player.inv[index]
+                player.inv.pop(index)
 
         elif kb.is_pressed("up arrow") and not (playerPosition in range(0, currentGrid.gridWidth)) and (currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].collision):
             if currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].level < player.eq.level:
@@ -294,9 +314,17 @@ def key_listen():
 
                 player.eq.durability -= 1
                 if player.eq.durability <= 0:
-                    player.inv.remove(player.eq)
                     player.eq = empty
                     log = "PICKAXE BROKE"
+        elif kb.is_pressed("up arrow") and not (playerPosition in range(0, currentGrid.gridWidth)) and not (currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].collision) and player.eq.toolID == 0 and currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] != player.eq:
+            autoreplace = player.eq
+            currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] = player.eq
+            player.eq = empty
+            currentGrid.draw()
+            if autoreplace in player.inv:
+                index = player.inv.index(autoreplace)
+                player.eq = player.inv[index]
+                player.inv.pop(index)
 
         elif kb.is_pressed("down arrow")  and not (playerPosition in range( (gridSize - currentGrid.gridWidth), gridSize) ) and (currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].collision):
             if currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].level < player.eq.level:
@@ -310,9 +338,17 @@ def key_listen():
 
                 player.eq.durability -= 1
                 if player.eq.durability <= 0:
-                    player.inv.remove(player.eq)
                     player.eq = empty
                     log = "PICKAXE BROKE"
+        elif kb.is_pressed("down arrow")  and not (playerPosition in range( (gridSize - currentGrid.gridWidth), gridSize) ) and not (currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] != player.eq:
+            autoreplace = player.eq
+            currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] = player.eq
+            player.eq = empty
+            currentGrid.draw()
+            if autoreplace in player.inv:
+                index = player.inv.index(autoreplace)
+                player.eq = player.inv[index]
+                player.inv.pop(index)
 
     except AttributeError:
         pass
