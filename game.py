@@ -130,10 +130,10 @@ creationTabRecipes.append(w_chestrecipe)
 #commands at "inventory" tab
 
 isChestNear = False
-NorthNear = False
-SouthNear = False
-EastNear = False
-WestNear = False
+NorthNear = True
+SouthNear = True
+EastNear = True
+WestNear = True
 
 def userInputDefine(plrInput):
     if plrInput.startswith("eq"):
@@ -157,6 +157,51 @@ def userInputDefine(plrInput):
                 for i in range(0, len(player.inv)):
                     if splitted[1] == player.inv[i].name:
                         currentGrid.grid[playerPosition + 1].inner_storage.append(player.inv[i])
+                        player.inv.remove(player.inv[i])
+                        print(splitted[1] + " added to east chest")
+                        break
+            else:
+                print("Can't spot east chest")
+        except AttributeError:
+            print("Tried to access not existing chest")
+        
+    if plrInput.startswith("dep-w"):
+        try:
+            if WestNear == True:
+                splitted = plrInput.split()
+                for i in range(0, len(player.inv)):
+                    if splitted[1] == player.inv[i].name:
+                        currentGrid.grid[playerPosition - 1].inner_storage.append(player.inv[i])
+                        player.inv.remove(player.inv[i])
+                        print(splitted[1] + " added to west chest")
+                        break
+            else:
+                print("Can't spot west chest")
+        except AttributeError:
+            print("Tried to access not existing chest")
+
+    if plrInput.startswith("dep-n"):
+        try:
+            if NorthNear == True:
+                splitted = plrInput.split()
+                for i in range(0, len(player.inv)):
+                    if splitted[1] == player.inv[i].name:
+                        currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].inner_storage.append(player.inv[i])
+                        player.inv.remove(player.inv[i])
+                        print(splitted[1] + " added to north chest")
+                        break
+            else:
+                print("Can't spot north chest")
+        except AttributeError:
+            print("Tried to access not existing chest")
+
+    if plrInput.startswith("dep-s"):
+        try:
+            if SouthNear == True:
+                splitted = plrInput.split()
+                for i in range(0, len(player.inv)):
+                    if splitted[1] == player.inv[i].name:
+                        currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].inner_storage.append(player.inv[i])
                         player.inv.remove(player.inv[i])
                         print(splitted[1] + " added to south chest")
                         break
@@ -343,9 +388,9 @@ def key_listen():
         global log
         if kb.is_pressed("right arrow") and currentGrid.grid[ playerPosition + 1 ].collision and player.eq.toolID == 1 and ( (playerPosition + 2) % 100 != 0):
             if currentGrid.grid[ playerPosition + 1 ].level < player.eq.level:
-                currentGrid.grid[playerPosition + 1] = currentGrid.grid[playerPosition + 1].bottomTile
                 if len(player.inv) < player.invCapacity:
                     player.inv.append(currentGrid.grid[playerPosition + 1])
+                    currentGrid.grid[playerPosition + 1] = currentGrid.grid[playerPosition + 1].bottomTile
                 else:
                     log = "INVENTORY FULL"
                 currentGrid.draw(0)
@@ -371,9 +416,9 @@ def key_listen():
 
         elif kb.is_pressed("left arrow") and ( playerPosition % 100 != 0 ) and (currentGrid.grid[ playerPosition - 1 ].collision) and player.eq.toolID == 1:
             if currentGrid.grid[ playerPosition - 1 ].level < player.eq.level:
-                currentGrid.grid[playerPosition - 1] = currentGrid.grid[playerPosition - 1].bottomTile
                 if len(player.inv) < player.invCapacity:
                     player.inv.append(currentGrid.grid[playerPosition - 1])
+                    currentGrid.grid[playerPosition - 1] = currentGrid.grid[playerPosition - 1].bottomTile
                 else:
                     log = 'INVENTORY FULL'
                 currentGrid.draw(0)
@@ -398,9 +443,9 @@ def key_listen():
 
         elif kb.is_pressed("up arrow") and not (playerPosition in range(0, currentGrid.gridWidth)) and (currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].collision):
             if currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].level < player.eq.level:
-                currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] = currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].bottomTile
                 if len(player.inv) < player.invCapacity:
                     player.inv.append(currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ])
+                    currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] = currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].bottomTile
                 else:
                     log = "INVENTORY FULL"
                 currentGrid.draw(0)
@@ -425,9 +470,9 @@ def key_listen():
 
         elif kb.is_pressed("down arrow")  and not (playerPosition in range( (gridSize - currentGrid.gridWidth), gridSize) ) and (currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].collision):
             if currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].level < player.eq.level:
-                currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] = currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].bottomTile
                 if len(player.inv) < player.invCapacity:
                     player.inv.append(currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)])
+                    currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] = currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].bottomTile
                 else:
                     log = "INVENTORY FULL"
                 currentGrid.draw(0)
