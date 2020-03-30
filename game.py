@@ -30,6 +30,11 @@ sulfur = ge.Object("s", ge.yellow, "sulfur", rock, 0, True)
 air = ge.Object("zacwb", ge.black, "air", rock, 0, False, False)
 lq_air = ge.Object("zacwb", ge.black, "liquid_air", rock, 0, False, False)
 
+w_chest = ge.Object("x", ge.canary, "wooden_chest", rock, 0, True)
+w_chest.objectID = -1
+w_chest.inner_storage = []
+w_chest.capacity = 100
+
 #creating player and his "trail"
 player = ge.Player()
 player.standingOn = rock
@@ -72,6 +77,9 @@ player.inv.append(rock)
 player.inv.append(rock)
 player.inv.append(rock)
 player.inv.append(rock)
+player.inv.append(wood)
+player.inv.append(wood)
+player.inv.append(wood)
 player.inv.append(wood)
 
 #generally used in "log" and "equipped" labels under game's grid
@@ -116,8 +124,17 @@ woodpickRecipe = Recipe("wooden_pickaxe", wooden_pickaxe, 0, wood, rock)
 creationTabRecipes.append(woodpickRecipe)
 liquidAirrecipe = Recipe("Liquid_Air", lq_air, 1, air)
 creationTabRecipes.append(liquidAirrecipe)
+w_chestrecipe = Recipe("wooden_chest", w_chest, 0, wood, wood)
+creationTabRecipes.append(w_chestrecipe)
 
 #commands at "inventory" tab
+
+isChestNear = False
+NorthNear = False
+SouthNear = False
+EastNear = False
+WestNear = False
+
 def userInputDefine(plrInput):
     if plrInput.startswith("eq"):
         splitted = plrInput.split()
@@ -127,11 +144,45 @@ def userInputDefine(plrInput):
                 print(player.inv[i].name + " equipped")
                 player.inv.pop(i)
                 break
+    if plrInput.startswith("deq"):
+        splitted = plrInput.split()
+        if splitted[1] == player.eq.name and player.eq != empty:
+            player.inv.append(player.eq)
+            player.eq = empty
+            print(splitted[1] + " de-equipped")
+    if plrInput.startswith("dep-e"):
+        try:
+            if EastNear == True:
+                splitted = plrInput.split()
+                for i in range(0, len(player.inv)):
+                    if splitted[1] == player.inv[i].name:
+                        currentGrid.grid[playerPosition + 1].inner_storage.append(player.inv[i])
+                        player.inv.remove(player.inv[i])
+                        print(splitted[1] + " added to south chest")
+                        break
+            else:
+                print("Can't spot south chest")
+        except AttributeError:
+            print("Tried to access not existing chest")
+
+
+            
 
 #showing inventory tab to a player (line 113)
 def inventoryTab():
+    global isChestNear
+    global NorthNear
+    global SouthNear
+    global EastNear
+    global WestNear
     userInput = None
     reservedObjects = []
+    nearbyStations = [0]
+ 
+    nearbyStations.append(currentGrid.grid[playerPosition + 1].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition - 1].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].objectID)
    
 
     system("cls")
@@ -144,6 +195,32 @@ def inventoryTab():
             reservedObjects.append(player.inv[i])
         elif player.inv.count(player.inv[i]) == 1:
             print(player.inv[i].name + " x1")
+
+    if -1 in nearbyStations:
+        isChestNear = True
+        if nearbyStations.index(-1) == 1:
+            EastNear = True
+            print("EAST CHEST:")
+            for i in currentGrid.grid[playerPosition + 1].inner_storage:
+                print(i.name)
+
+        if nearbyStations.index(-1) == 2:
+            WestNear = True
+            print("WEST CHEST:")
+            for i in currentGrid.grid[playerPosition - 1].inner_storage:
+                print(i.name)
+        if nearbyStations.index(-1) == 3:
+            NorthNear = True
+            print("SOUTH CHEST:")
+            for i in currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].inner_storage:
+                print(i.name)
+        if nearbyStations.index(-1) == 4:
+            SouthNear = True
+            print("NORTH CHEST:")
+            for i in currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].inner_storage:
+                print(i.name)
+    else:
+        isChestNear = False
 
     #keyboard.press(Key.enter)
     userInput = input()
@@ -183,6 +260,7 @@ def creationTab():
         if not (False in isPossibleToCraft):
             print(creationTabRecipes[i].name)
             availableRecipes.append(creationTabRecipes[i])
+        isPossibleToCraft = []
 
     #defining creation tab commands
     userInput = input()
