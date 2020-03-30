@@ -26,6 +26,9 @@ stone_wall = ge.Object("█", ge.white, "stone_wall", rock, 0, True)
 sand = ge.Object("▒", ge.yellow, "sand", rock)
 sandstone_wall = ge.Object("▓", ge.yellow, "sandstone", rock, 0, True)
 grass = ge.Object("o", ge.green, "grass", rock)
+sulfur = ge.Object("s", ge.yellow, "sulfur", rock, 0, True)
+air = ge.Object("zacwb", ge.black, "air", rock, 0, False, False)
+lq_air = ge.Object("zacwb", ge.black, "liquid_air", rock, 0, False, False)
 
 #creating player and his "trail"
 player = ge.Player()
@@ -45,9 +48,11 @@ class Biome:
             self.biomeDeepBlocks.append(i)
 
 desert = Biome("desert", sand, sand, sand, sandstone_wall)
-plains = Biome("plains", rock, grass, grass, grass, grass, wood, wood)
+plains = Biome("plains", rock, grass, grass, grass, grass, wood)
+forest = Biome("forest", grass, grass, wood)
+hills = Biome("hills", rock, rock, rock, rock, rock, rock, rock, rock, wood, sulfur)
 
-biomes = [desert, plains]
+biomes = [desert, plains, forest, hills]
 
 currentLayerBiome = choice(biomes)
 
@@ -93,7 +98,10 @@ class Recipe:
 
         player.inv.append(self.result)
 
-
+cooling_cell = ge.Object("o", ge.white, "cooling_cell", rock, 0, True, True)
+cooling_cell.objectID = 1
+player.inv.append(air)
+player.inv.append(cooling_cell)
 
 class Tool:
     def __init__(self, name, toolID, level, durability):
@@ -103,8 +111,11 @@ class Tool:
         self.durability = durability
 
 wooden_pickaxe = Tool("wooden_pickaxe", 1, 2, 20)
+
 woodpickRecipe = Recipe("wooden_pickaxe", wooden_pickaxe, 0, wood, rock)
 creationTabRecipes.append(woodpickRecipe)
+liquidAirrecipe = Recipe("Liquid_Air", lq_air, 1, air)
+creationTabRecipes.append(liquidAirrecipe)
 
 #commands at "inventory" tab
 def userInputDefine(plrInput):
@@ -147,19 +158,18 @@ def creationTab():
     global playerPosition
     global currentGrid
     nearbyStations = [0]
-    try:
-        nearbyStations.append(currentGrid.grid[playerPosition + 1].objectID)
-        nearbyStations.append(currentGrid.grid[playerPosition - 1].objectID)
-        nearbyStations.append(currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].objectID)
-        nearbyStations.append(currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].objectID)
-    except AttributeError:
-        pass
+ 
+    nearbyStations.append(currentGrid.grid[playerPosition + 1].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition - 1].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].objectID)
+    nearbyStations.append(currentGrid.grid[playerPosition - (currentGrid.gridWidth + 1)].objectID)
     system('cls')
 
 
     isPossibleToCraft = []
     availableRecipes = []
 
+    print(nearbyStations)
     print("CREATION MENU. \n AVAILABLE BLUEPRINTS:")
 
     #i hate double loops, they take much more time to understand them
@@ -268,14 +278,17 @@ def key_listen():
                     player.eq = empty
                     log = "PICKAXE BROKE"
         elif kb.is_pressed("right arrow") and not (currentGrid.grid[ playerPosition + 1 ].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + 1] != player.eq:
-            autoreplace = player.eq
-            currentGrid.grid[playerPosition + 1] = player.eq
-            player.eq = empty
-            currentGrid.draw()
-            if autoreplace in player.inv:
-                index = player.inv.index(autoreplace)
-                player.eq = player.inv[index]
-                player.inv.pop(index)
+            if player.eq.isPlaceable:
+                autoreplace = player.eq
+                currentGrid.grid[playerPosition + 1] = player.eq
+                player.eq = empty
+                currentGrid.draw()
+                if autoreplace in player.inv:
+                    index = player.inv.index(autoreplace)
+                    player.eq = player.inv[index]
+                    player.inv.pop(index)
+            else:
+                log = "CAN'T PLACE {0}".format(player.eq.name)
 
 
         elif kb.is_pressed("left arrow") and ( playerPosition % 100 != 0 ) and (currentGrid.grid[ playerPosition - 1 ].collision) and player.eq.toolID == 1:
@@ -293,14 +306,17 @@ def key_listen():
                     player.eq = empty
                     log = "PICKAXE BROKE"
         elif kb.is_pressed("left arrow") and ( playerPosition % 100 != 0 ) and not (currentGrid.grid[ playerPosition - 1 ].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + 1] != player.eq:
-            autoreplace = player.eq
-            currentGrid.grid[playerPosition - 1] = player.eq
-            player.eq = empty
-            currentGrid.draw()
-            if autoreplace in player.inv:
-                index = player.inv.index(autoreplace)
-                player.eq = player.inv[index]
-                player.inv.pop(index)
+            if player.eq.isPlaceable:
+                autoreplace = player.eq
+                currentGrid.grid[playerPosition - 1] = player.eq
+                player.eq = empty
+                currentGrid.draw()
+                if autoreplace in player.inv:
+                    index = player.inv.index(autoreplace)
+                    player.eq = player.inv[index]
+                    player.inv.pop(index)
+            else:
+                log = "CAN'T PLACE {0}".format(player.eq.name)
 
         elif kb.is_pressed("up arrow") and not (playerPosition in range(0, currentGrid.gridWidth)) and (currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].collision):
             if currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].level < player.eq.level:
@@ -317,14 +333,17 @@ def key_listen():
                     player.eq = empty
                     log = "PICKAXE BROKE"
         elif kb.is_pressed("up arrow") and not (playerPosition in range(0, currentGrid.gridWidth)) and not (currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ].collision) and player.eq.toolID == 0 and currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] != player.eq:
-            autoreplace = player.eq
-            currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] = player.eq
-            player.eq = empty
-            currentGrid.draw()
-            if autoreplace in player.inv:
-                index = player.inv.index(autoreplace)
-                player.eq = player.inv[index]
-                player.inv.pop(index)
+            if player.eq.isPlaceable:
+                autoreplace = player.eq
+                currentGrid.grid[ (playerPosition - (currentGrid.gridWidth + 1)) ] = player.eq
+                player.eq = empty
+                currentGrid.draw()
+                if autoreplace in player.inv:
+                    index = player.inv.index(autoreplace)
+                    player.eq = player.inv[index]
+                    player.inv.pop(index)
+            else:
+                log = "CAN'T PLACE {0}".format(player.eq.name)
 
         elif kb.is_pressed("down arrow")  and not (playerPosition in range( (gridSize - currentGrid.gridWidth), gridSize) ) and (currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].collision):
             if currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].level < player.eq.level:
@@ -341,14 +360,17 @@ def key_listen():
                     player.eq = empty
                     log = "PICKAXE BROKE"
         elif kb.is_pressed("down arrow")  and not (playerPosition in range( (gridSize - currentGrid.gridWidth), gridSize) ) and not (currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)].collision) and player.eq.toolID == 0 and currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] != player.eq:
-            autoreplace = player.eq
-            currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] = player.eq
-            player.eq = empty
-            currentGrid.draw()
-            if autoreplace in player.inv:
-                index = player.inv.index(autoreplace)
-                player.eq = player.inv[index]
-                player.inv.pop(index)
+            if player.eq.isPlaceable:
+                autoreplace = player.eq
+                currentGrid.grid[playerPosition + (currentGrid.gridWidth + 1)] = player.eq
+                player.eq = empty
+                currentGrid.draw()
+                if autoreplace in player.inv:
+                    index = player.inv.index(autoreplace)
+                    player.eq = player.inv[index]
+                    player.inv.pop(index)
+            else:
+                log = "CAN'T PLACE {0}".format(player.eq.name)
 
     except AttributeError:
         pass
